@@ -58,7 +58,7 @@ function setDebugLevel(n)
 end
 
 
-local function main(args)
+local function main()
     -- os.execute('clear')
     local info = assert(reader.waitFor14443a())
     setDebugLevel(0)
@@ -70,11 +70,25 @@ local function main(args)
     block[6] = assert(readBlock(6, 'A', key))
     block[5] = assert(readBlock(5, 'A', key))
 
+    info.serialNo = block[5](14, 28, 2)
+    info.balance  = block[6](2, 10, 2)
+    info.checksum = block[6](11, 14)
+
     print()
-    print('Type:', info.name)
-    print('UID:',  info.uid)
-    print('Card:', block[5](14, 28, 2))
-    print('Data:', block[6](2, 10, 2)..'-'..block[6](11, 14))
+    print('Tag Type:',  info.name)
+    print('Unique ID:', info.uid)
+    print('Serial No:', info.serialNo)
+    print('Balance:',   info.balance..'-'..info.checksum)
+
+    local logFile = assert(io.open('balance.log', 'a'))
+    local logEntry = {
+        os.date('%Y-%m-%d\t%X'),
+        info.serialNo,
+        info.balance,
+        info.checksum
+    }
+    logFile:write(table.concat(logEntry, '\t'), '\n')
+    logFile:close()
 end
 
 
