@@ -78,4 +78,4 @@ local function main(args)
 end
 
 
-main(args)
+while not pcall(main) do end
