@@ -3,7 +3,7 @@ local cmds = require('commands')
 
 
 getmetatable('').__call = function(self, start, stop, step)
-    t = {}
+    local t = {}
     for i = start, stop or start, step or 1 do
         t[#t + 1] = self:sub(i, i)
     end
@@ -11,9 +11,9 @@ getmetatable('').__call = function(self, start, stop, step)
 end
 
 
-local function readBlock(block, keyType, key)
-    keyTypeIDs = {A=0, B=1}
-    response, err = reader.sendToDevice(Command:new{
+function readBlock(block, keyType, key)
+    local keyTypeIDs = {A=0, B=1}
+    local response, err = reader.sendToDevice(Command:new{
         cmd = cmds.CMD_MIFARE_READBL,
         arg1 = block,
         arg2 = keyTypeIDs[keyType:upper()],
@@ -25,7 +25,7 @@ local function readBlock(block, keyType, key)
         return nil, 'Timeout'
     end
 
-    command = Command.parse(response)
+    local command = Command.parse(response)
     if command.arg1 == 0 then
         return nil, 'Auth failed'
     end
@@ -33,8 +33,8 @@ local function readBlock(block, keyType, key)
 end
 
 
-local function readEmulator(block)
-    response, err = reader.sendToDevice(Command:new{
+function readEmulator(block)
+    local response, err = reader.sendToDevice(Command:new{
         cmd = cmds.CMD_MIFARE_EML_MEMGET,
         arg1 = block,
         arg2 = 1  -- blocks count, we only read one block
@@ -45,12 +45,12 @@ local function readEmulator(block)
         return nil, 'Timeout'
     end
 
-    command = Command.parse(response)
+    local command = Command.parse(response)
     return command.data:sub(1, 16 * 2)  -- 16 bytes in one block
 end
 
 
-local function setDebugLevel(n)
+function setDebugLevel(n)
     return reader.sendToDevice(Command:new{
         cmd = cmds.CMD_MIFARE_SET_DBGMODE,
         arg1 = n
@@ -60,13 +60,13 @@ end
 
 local function main(args)
     -- os.execute('clear')
-    info = assert(reader.waitFor14443a())
+    local info = assert(reader.waitFor14443a())
     setDebugLevel(0)
     core.console('hf mf nested o 63 A FFFFFFFFFFFF 6 A t')
 
-    block = {}
+    local block = {}
     block[7] = assert(readEmulator(7))
-    key = block[7](1, 12)
+    local key = block[7](1, 12)
     block[6] = assert(readBlock(6, 'A', key))
     block[5] = assert(readBlock(5, 'A', key))
 
